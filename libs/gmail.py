@@ -65,6 +65,6 @@ class Gmail:
 			i += 1
 		return entries_list
 if __name__ == '__main__':
-	gmail = Gmail('mephcpp@gmail.com', 'septolete1', ('Photo', ))
+	gmail = Gmail('account@gmail.com', 'password', ('Photo', ))
 	entries = gmail.entries()
 	print entries
