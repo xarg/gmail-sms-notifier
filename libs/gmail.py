@@ -42,11 +42,9 @@ class Gmail:
 		e = fromstring(lines)
 		entries =  e.findall('{http://purl.org/atom/ns#}entry')
 		entries_list = []
-		i = 0;
 		for entry in entries:
-			entries_list.append([])
+			row = {}
 			for e in entry:
-				row = {}
 				tag = str(e.tag).split('{http://purl.org/atom/ns#}')[1]
 				if tag == 'id':
 					row['id'] = e.text.split(':')[2]
@@ -60,11 +58,9 @@ class Gmail:
 					author = e.getchildren()
 					row['author_name'] = author[0].text
 					row['author_email'] = author[1].text
-				if len(row):
-					entries_list[i].append(row)
-			i += 1
+			if len(row):
+				entries_list.append(row)
 		return entries_list
 if __name__ == '__main__':
 	gmail = Gmail('account@gmail.com', 'password', ('Photo', ))
-	entries = gmail.entries()
-	print entries
+	entries = gmail.entries() # Entries
