@@ -12,13 +12,34 @@ import string
 import time
 
 class Calendar:
-
-	def __init__(self, email, password):
+	def __init__(self, type = 'Programmatic'):
+		""" Login with password or OAuth """
 		self.cal_client = gdata.calendar.service.CalendarService()
-		self.cal_client.email = email
-		self.cal_client.password = password
-		self.cal_client.source = 'Google-Calendar_SMS_Notifier_1_0'
-		self.cal_client.ProgrammaticLogin()
+		self.cal_client.source = 'Google_SMS_Notifier_1_0'
+		self.type = type
+	def login(self, **args):
+		if self.type == 'Programmatic':
+			self.cal_client.email = args['email']
+			self.cal_client.password = args['password']
+			self.cal_client.ProgrammaticLogin()
+		elif self.type == 'OAuth':
+			SIG_METHOD = gdata.auth.OAuthSignatureMethod.HMAC_SHA1
+			oauth_token = gdata.auth.OAuthToken(
+				key=args['oauth_token_access'],
+				secret=args['oauth_token_secret']
+			)
+			oauth_token.oauth_input_params = gdata.auth.OAuthInputParams(
+				SIG_METHOD,
+				args['oauth_consumer_key'],
+				consumer_secret=args['oauth_consumer_secret']
+			)
+			self.cal_client.SetOAuthInputParameters(
+				SIG_METHOD,
+				args['oauth_consumer_key'],
+				consumer_secret=args['oauth_consumer_secret']
+			)
+			self.cal_client.SetOAuthToken(oauth_token)
+			#self.cal_client.debug = 'true'
 	def create(self, title, where):
 		""" Creates an event and add a reminder to it"""
 		""" Default calendar notification (sms 1 minute) must be set in calendar settings under notifications tab """
@@ -85,7 +106,18 @@ class Calendar:
 
 		self.cal_client.DeleteEvent(event.GetEditLink().href)
 if __name__ == '__main__':
-	calendar = Calendar('mephcpp@gmail.com', 'septolete13')
+	calendar = Calendar('OAuth')
+	calendar.login(
+		oauth_consumer_key='',
+		oauth_consumer_secret='',
+		oauth_token_access='',
+		oauth_token_secret=''
+	)
+	#calendar = Calendar('Programmatic')
+	#calendar.login(
+	#	email='',
+	#	password='',
+	#)
 	event = calendar.create(title = "Test notification", where = "Inbox")
-	time.sleep(10)
-	calendar.delete(event)
+	#time.sleep(10)
+	#calendar.delete(event)
