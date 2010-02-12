@@ -1,0 +1,2 @@
+* test cases should be implemented for libraries as well as clients
+* switch from threading to multiprocessing

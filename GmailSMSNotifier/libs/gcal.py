@@ -82,7 +82,11 @@ class Calendar:
 			if str(entry.title.text).lower() == 'gmail':
 				link = entry.content.src
 				break
-		return self.cal_client.InsertEvent(event, link)
+		try:
+			event = self.cal_client.InsertEvent(event, link)
+		except gdata.service.RequestError:
+			event = self.cal_client.InsertEvent(event, link)
+		return event
 	def _AddReminder(self, event, minutes=5):
 		"""Adds a reminder to the event.  This uses the default reminder settings
 		for the user to determine what type of notifications are sent (email, sms,
@@ -103,9 +107,9 @@ class Calendar:
 		"""Given an event object returned for the calendar server, this method
 		deletes the event.  The edit link present in the event is the URL used
 		in the HTTP DELETE request."""
-
 		self.cal_client.DeleteEvent(event.GetEditLink().href)
 if __name__ == '__main__':
+	# Auth using OAuth
 	calendar = Calendar('OAuth')
 	calendar.login(
 		oauth_consumer_key='',
@@ -113,11 +117,12 @@ if __name__ == '__main__':
 		oauth_token_access='',
 		oauth_token_secret=''
 	)
-	#calendar = Calendar('Programmatic')
-	#calendar.login(
-	#	email='',
-	#	password='',
-	#)
-	event = calendar.create(title = "Test notification", where = "Inbox")
-	#time.sleep(10)
-	#calendar.delete(event)
+	# Auth using Email + Password
+	calendar = Calendar('Programmatic')
+	calendar.login(email='',password='')
+	#Create a new event
+	event = calendar.create(title = "One of these days, bam boom", where = "Straight to the moon")
+	#Wait a few secs
+	time.sleep(20)
+	#Delete the newly created event
+	calendar.delete(event)

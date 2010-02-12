@@ -11,5 +11,9 @@ Google Calendar events',
     url='http://github.com/humanfromearth/gmail-sms-notifier',
     license='GPLv2',
     packages=['GmailSMSNotifier'],
-    requires=['gdata'],
+    install_requires=['gdata'],
+    entry_points=("""
+        [console_scripts]
+        gmail-sms-client=gmail-sms-client:main
+    """)
 )

@@ -68,8 +68,11 @@ class Gmail:
 		else:
 			if self.type == 'OAuth': self._set_header()
 		#opener = urllib2.build_opener(urllib2.HTTPHandler(debuglevel=1))
-		opener = urllib2.build_opener(urllib2.HTTPHandler())
-		res = opener.open(self.request)
+		if self.type == 'Programmatic':
+			res = urllib2.urlopen(self.request)
+		elif self.type == 'OAuth':
+			opener = urllib2.build_opener(urllib2.HTTPHandler())
+			res = opener.open(self.request)
 
 		lines = ''.join(res.readlines())
 		e = fromstring(lines)
@@ -112,6 +115,7 @@ class Gmail:
 		self.request.add_header('User-Agent', 'Google_SMS_Notifier_1_0 GData-Python/1.2.2')
 		self.request.add_header('Content-Type', 'application/atom+xml')
 if __name__ == '__main__':
+	#Using Oauth
 	gmail = Gmail('OAuth', labels = ('Work', ))
 	gmail.login(
 		oauth_consumer_key='',
@@ -119,7 +123,8 @@ if __name__ == '__main__':
 		oauth_token_access='',
 		oauth_token_secret='',
 	)
-	#gmail = Gmail('Programmatic', labels = ('Important', ))
-	#gmail.login(email='account@gmail.com', password='password')
+	#Using Programmatic
+	gmail = Gmail('Programmatic', labels=None)
+	gmail.login(email='account@gmail.com', password='password')
 	entries = gmail.entries() # Entries
 	print entries

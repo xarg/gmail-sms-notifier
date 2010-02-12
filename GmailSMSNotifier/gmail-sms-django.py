@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-#	GmailSMSNotifier Daemon with connection to Django Models
+#	GmailSMSNotifier Daemon with connection to Django - this is just an example
+#
 #	Copyright (C) 2010  Alexandru Plugaru (alexandru.plugaru@gmail.com)
 #
 #	This program is free software; you can redistribute it and/or
@@ -23,13 +24,15 @@ import getopt
 import time
 import re
 
-from threading import Thread, Timer
+from threading import Thread
 
 from libs.gcal import Calendar # Access Google Calendar
 from libs.gmail import Gmail # Access Gmail via RSS Feed
 
 # Django Connection
-DJANGO_PATH = '/home/sasha/Projects/django/gmailsms'
+# !!! IMPORTANT !!!
+DJANGO_PATH = '/home/sasha/django/gmailsms'
+
 sys.path.append(DJANGO_PATH)
 from django.core.management import setup_environ
 import settings
@@ -37,6 +40,8 @@ setup_environ(settings)
 
 
 from django.contrib.auth.models import User
+
+# Profile modules and labels and so on..
 from accounts.models import UserProfile, UserLabel, UserEmail
 
 from django.core.mail import send_mail, mail_admins
@@ -106,12 +111,13 @@ class Daemon(Thread):
 			for label in entries['entries']:
 				for entry in entries['entries'][label]:
 					label_text = "Inbox" if label == '^inbox' else label
+					print entry	
 					try:
 						UserEmail.objects.filter(user=self.user['id']).filter(email_id=entry['id']).get() # This email has been verified
-					except UserEmail.DoesNotExist:
+					except UserEmail.DoesNotExist:						
 						user_email = UserEmail(user_id=self.user['id'], email_id=entry['id'])
 						events.append(calendar.create(title="("+entry['author_name']+") " + entry['title'], where = label_text))
-						user_email.save() # Event created save log
+						user_email.save() # Event created save log							
 			time.sleep(DELETE_EVENT_AFTER)
 			for event in events: # Clean calendar from added notifications
 				calendar.delete(event)
@@ -137,7 +143,7 @@ def main():
 						'oauth_token_secret': user_profile.oauth_token_secret,
 					})
 				except User.DoesNotExist:
-					pass
+					pass			
 			for user in users:
 				daemon = Daemon(user)
 				daemon.start()

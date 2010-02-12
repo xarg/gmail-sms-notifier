@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#	GmailSMSNotifier console client
+#	GmailSMSNotifier console client using both Programmatic Auth
 #	Copyright (C) 2010  Alexandru Plugaru (alexandru.plugaru@gmail.com)
 #
 #	This program is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@ import time
 import re
 import pickle
 
-from threading import Thread, Timer
+from threading import Thread
 
 from libs.gcal import Calendar # Access Google Calendar
 from libs.gmail import Gmail # Access Gmail via RSS Feed
@@ -33,8 +33,9 @@ from libs.gmail import Gmail # Access Gmail via RSS Feed
 DEBUG = True
 DELETE_EVENT_AFTER = 70 # Seconds
 CHECK_INTERVAL = 60 # Seconds
-ROOT_PATH = os.path.abspath(os.path.dirname(__file__))
-ENTRY_IDS_FILE =  ROOT_PATH + '/tmp/message_ids.pickle'
+#We will store here message ids that have been sent notifications to
+ENTRY_IDS_FILE =  os.path.join(os.getcwd(), 'message_ids.pickle')
+
 class Daemon(Thread):
 	"""
 	Check if there are new emails on your Gmail account.
@@ -48,25 +49,43 @@ class Daemon(Thread):
 		self.email = email
 		self.password = password
 		self.labels = labels
-		self.timer = None
+		self.emails = []
+		self._email_ids() # loading pickled message ids
 	def run(self):
-		gmail = Gmail(self.email, self.password, self.labels)
+		gmail = Gmail('Programmatic', labels=self.labels)
+		gmail.login(email=self.email, password=self.password)
 		entries = gmail.entries()
 		if entries['error'] == 'Unauthorized':
 			print "Login failed! Make sure your email and password is correct"
 			sys.exit(2)
 
-		calendar = Calendar(self.email, self.password)
+		calendar = Calendar('Programmatic')
+		calendar.login(email=self.email, password=self.password)
+		
 		for label in entries['entries']:
 			for entry in entries['entries'][label]:
-				label_text = "Inbox" if label == '^inbox' else label
-				event = calendar.create(title="("+entry['author_name']+") " + entry['title'], where = label_text)
-				time.sleep(180)
-				calendar.delete(event)
-	def _read_ids(self):
-		print ENTRY_IDS_FILE
-	def _write_id(self, id = ""):
-		print ENTRY_IDS_FILE
+				if entry['id'] not in self.emails:
+					label_text = "Inbox" if label == '^inbox' else label
+					event = calendar.create(title="("+entry['author_name']+") " + entry['title'], where = label_text)
+					self.emails.append(entry['id'])
+					self._email_ids() # Write this event to pickled file
+					time.sleep(180)
+					calendar.delete(event)
+	def _email_ids(self):
+		""" Sync email ids. This pickled file will know what mails have been noted in gcalendar"""
+		if os.path.exists(ENTRY_IDS_FILE):
+			try:
+				if len(self.emails):
+					pickle.dump(self.emails, open(ENTRY_IDS_FILE, 'wb'))
+				self.emails = pickle.load(open(ENTRY_IDS_FILE, 'rb'))
+			except:
+				print 'Error reading pickled file'
+				sys.exit(2)
+		else:
+			try:
+				pickle.dump(self.emails, open(ENTRY_IDS_FILE, 'wb'))
+			except:
+				print 'Error creating pickled file'
 def usage():
 	print """Usage: %s [-e|--email=GMAIL_EMAIL] [-p|--password=GMAIL_PASSWORD] [-l|--labels=LABELS]"
 Example:
