@@ -1,7 +1,10 @@
 == Description
-This is a cross plaform (Linux/Windows/OSX) thingy that allows one to use his Google Calendar
-account to send a sms when some new email arrives to your account.
+This is python collection that allows one to use his Google Calendar combined with
+Gmail account to send an sms when some new labeled email arrives to your account.
+It uses both Oauth and Programatic auth.
 
 == Authors
-
 * Alexandru Plugaru (alexandru.plugaru@gmail.com)
+
+== License
+GPLv2

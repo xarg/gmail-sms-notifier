@@ -1,7 +1,20 @@
 #!/usr/bin/env python
+#	GmailSMSNotifier console client
+#	Copyright (C) 2010  Alexandru Plugaru (alexandru.plugaru@gmail.com)
 #
-# This includes a threading daemon that checks gmail new messages feed
+#	This program is free software; you can redistribute it and/or
+#	modify it under the terms of the GNU General Public License
+#	as published by the Free Software Foundation; either version 2
+#	of the License, or (at your option) any later version.
 #
+#	This program is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with this program; if not, write to the Free Software
+#	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import sys
 import os
@@ -61,7 +74,7 @@ Example:
     If no --labels are set it will watch the inbox
 """ % (sys.argv[0], sys.argv[0])
 	sys.exit(2)
-if __name__ == "__main__":
+def main():
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], "he:p:l:", ["help", "email=", 'password=', 'labels='])
 	except getopt.GetoptError, err:
@@ -91,8 +104,9 @@ if __name__ == "__main__":
 		while True:
 			try:
 				daemon = Daemon(email = email, password = password, labels = labels)
-				#daemon.daemon = True
 				daemon.start()
 				time.sleep(500)
 			except KeyboardInterrupt:
 				sys.exit(2)
+if __name__ == "__main__":
+	main()
