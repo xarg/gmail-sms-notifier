@@ -1,21 +1,5 @@
 #!/usr/bin/env python
 # GmailSMSNotifier Daemon with connection to Django - this is just an example
-# 
-# Copyright (C) 2010  Alexandru Plugaru (alexandru.plugaru@gmail.com)
-# 
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import sys
 import os
@@ -53,7 +37,8 @@ THREADS_COUNT = 10 # Number of threads
 DELETE_EVENT_AFTER = 180 # Seconds
 CHECK_INTERVAL = 10 # Seconds
 ROOT_PATH = os.path.abspath(os.path.dirname(__file__))
-# Check five times if an OAuth is ok, if not remove authorizations from DB and notify user via e-mail
+# Check five times if an OAuth is ok, if not remove authorizations
+# from DB and notify user via e-mail
 FAIL_COUNT = 2
 UNAUTHORIZED_ACCESS = {}
 
@@ -81,10 +66,9 @@ def run(user):
 			user_profile.save()
 			send_mail(
 				'OAuth token no longer valid',
-				render_to_string('emails/token_invalid.txt', { 'SITE': settings.SITE }),
-				settings.DEFAULT_FROM_EMAIL,
-				[user['email'], ]
-			)
+				render_to_string('emails/token_invalid.txt',
+								 {'SITE': settings.SITE}),
+				settings.DEFAULT_FROM_EMAIL, [user['email'], ])
 		else:
 			UNAUTHORIZED_ACCESS[user['id']] +=1
 	else:
@@ -103,25 +87,34 @@ def run(user):
 			for entry in entries['entries'][label]:
 				label_text = "Inbox" if label == '^inbox' else label
 				try:
-					UserEmail.objects.filter(user=user['id']).filter(email_id=entry['id']).get() # This email has been verified
+					#This email has been verified
+					UserEmail.objects.filter(user=user['id']).filter(
+						email_id=entry['id']).get()
 				except UserEmail.DoesNotExist:
-					user_email = UserEmail(user_id=user['id'], email_id=entry['id'])
-					events.append(calendar.create(title="("+entry['author_name']+") " + entry['title'], where = label_text))
-					user_email.save() # Event created save log							
+					user_email = UserEmail(user_id=user['id'],
+										   email_id=entry['id'])
+					events.append(calendar.create(
+						title="("+entry['author_name']+") " +
+						entry['title'], where = label_text))
+					user_email.save() # Event created save log
 		time.sleep(DELETE_EVENT_AFTER)
 		for event in events: # Clean calendar from added notifications
 			calendar.delete(event)
 	return current_thread()
+
 def result(res):
 	print res
+
 def main():
 	pool = ThreadPool()
 	while True:
 		try:
-			user_profiles = UserProfile.objects.select_related().filter(stop=0).exclude(oauth_token_access='').all()
+			user_profiles = UserProfile.objects.select_related().\
+							filter(stop=0).exclude(oauth_token_access='').all()
 			users = []
 			for user_profile in user_profiles:
-				user_labels = UserLabel.objects.filter(user=user_profile.pk).all()
+				user_labels = UserLabel.objects.filter(
+									user=user_profile.pk).all()
 				labels = []
 				for label in user_labels:
 					labels.append(label.name)

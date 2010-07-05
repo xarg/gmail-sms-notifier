@@ -1,29 +1,13 @@
 #!/usr/bin/env python
-#	GmailSMSNotifier console client using both Programmatic Auth
-#	Copyright (C) 2010  Alexandru Plugaru (alexandru.plugaru@gmail.com)
-#
-#	This program is free software; you can redistribute it and/or
-#	modify it under the terms of the GNU General Public License
-#	as published by the Free Software Foundation; either version 2
-#	of the License, or (at your option) any later version.
-#
-#	This program is distributed in the hope that it will be useful,
-#	but WITHOUT ANY WARRANTY; without even the implied warranty of
-#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#	GNU General Public License for more details.
-#
-#	You should have received a copy of the GNU General Public License
-#	along with this program; if not, write to the Free Software
-#	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
-import sys
-import os
+__doc__ = """ Console client using both Programmatic and OAuth authentification
+methods to Google services.
+"""
 import getopt
-
-import time
-import re
+import os
 import pickle
-
+import re
+import sys
+import time
 from threading import Thread
 
 from libs.gcal import Calendar # Access Google Calendar
@@ -61,18 +45,22 @@ class Daemon(Thread):
 
 		calendar = Calendar('Programmatic')
 		calendar.login(email=self.email, password=self.password)
-		
+
 		for label in entries['entries']:
 			for entry in entries['entries'][label]:
 				if entry['id'] not in self.emails:
 					label_text = "Inbox" if label == '^inbox' else label
-					event = calendar.create(title="("+entry['author_name']+") " + entry['title'], where = label_text)
+					event = calendar.create(title="("+entry['author_name']+") "
+							+ entry['title'], where = label_text)
 					self.emails.append(entry['id'])
 					self._email_ids() # Write this event to pickled file
 					time.sleep(180)
 					calendar.delete(event)
 	def _email_ids(self):
-		""" Sync email ids. This pickled file will know what mails have been noted in gcalendar"""
+		""" Sync email ids. This pickled file will know what mails have been
+		noted in gcalendar
+
+		"""
 		if os.path.exists(ENTRY_IDS_FILE):
 			try:
 				if len(self.emails):
@@ -87,15 +75,17 @@ class Daemon(Thread):
 			except:
 				print 'Error creating pickled file'
 def usage():
-	print """Usage: %s [-e|--email=GMAIL_EMAIL] [-p|--password=GMAIL_PASSWORD] [-l|--labels=LABELS]"
+	print """Usage: %s [-e|--email=GMAIL_EMAIL] [-p|--password=GMAIL_PASSWORD] [-l|--labels=LABELS]'
 Example:
     %s --email=account@gmail.com --password=my_password --labels=Important,Work,Family
     If no --labels are set it will watch the inbox
 """ % (sys.argv[0], sys.argv[0])
 	sys.exit(2)
+
 def main():
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], "he:p:l:", ["help", "email=", 'password=', 'labels='])
+		opts, args = getopt.getopt(sys.argv[1:], "he:p:l:",
+								   ["help", "email=", 'password=', 'labels='])
 	except getopt.GetoptError, err:
 		# print help information and exit:
 		usage()
@@ -117,12 +107,13 @@ def main():
 			assert False, "unhandled option"
 	if not email and not password and not labels: # No arguments == GUI
 		usage()
-	elif (email and not password) or (password and not email): #Password supplied but no email
+	elif (email and not password) or (password and not email):
 		usage()
 	else: # Password and email set - start daemon
 		while True:
 			try:
-				daemon = Daemon(email = email, password = password, labels = labels)
+				daemon = Daemon(email = email, password = password,
+								labels = labels)
 				daemon.start()
 				time.sleep(500)
 			except KeyboardInterrupt:
