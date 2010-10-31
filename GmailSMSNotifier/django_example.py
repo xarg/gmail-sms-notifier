@@ -32,16 +32,14 @@ from django.contrib.auth.models import User
 from accounts.models import UserProfile, UserLabel, UserEmail
 
 # Constants
-DEBUG = True
 THREADS_COUNT = 10 # Number of threads
 DELETE_EVENT_AFTER = 180 # Seconds
-CHECK_INTERVAL = 10 # Seconds
+CHECK_INTERVAL = 5 # Seconds
 ROOT_PATH = os.path.abspath(os.path.dirname(__file__))
-# Check five times if an OAuth is ok, if not remove authorizations
+# Check FAIL_COUNT times if an OAuth is ok, if not remove authorizations
 # from DB and notify user via e-mail
 FAIL_COUNT = 2
 UNAUTHORIZED_ACCESS = {}
-
 
 def run(user):
 	""" Make the necessary checks """
