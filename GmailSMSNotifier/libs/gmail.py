@@ -127,4 +127,3 @@ if __name__ == '__main__':
 	gmail = Gmail('Programmatic', labels=None)
 	gmail.login(email='account@gmail.com', password='password')
 	entries = gmail.entries() # Entries
-	print entries
